@@ -1,6 +1,6 @@
 from board import Board
 from creature import Creature
-from player import Player
+from astronaut import Astronaut
 
 
 def main_function():
@@ -26,23 +26,27 @@ def main_function():
 
 def player_actions():
     print(f'Player')
-    player = Player()
+    astronaut = Astronaut()
     creature = Creature()
     board = Board()
     game_phase = 0
     while 1:
+
+
+
         if game_phase == 0:
             print(f'Phase Ia')
+            print(f'Available location(s): {astronaut.get_available_locations()}')
             print(f'0 - Resist')
             print(f'1 - Give Up')
             print(f'2 - Skip')
             res = int(input('Your choice: '))
             if res == 0:
-                player.resist()
+                astronaut.resist()
                 game_phase = 1
                 continue
             elif res == 1:
-                player.give_up()
+                astronaut.give_up(board.clear_discard_pile())
                 game_phase = 1
                 continue
             elif res == 2:
@@ -54,9 +58,9 @@ def player_actions():
 
         if game_phase == 1:
             print(f'Phase Ib')
-            print(f'Available location(s): {player.get_available_locations()}')
+            print(f'Available location(s): {astronaut.get_available_locations()}')
             res = int(input(f'Please enter location: '))
-            player.set_location(res)
+            astronaut.set_location(res)
             game_phase = 2
             continue
 
@@ -66,17 +70,29 @@ def player_actions():
             continue
 
         if game_phase == 3:
-            if player.selected_location == creature.creature_location:
+            if astronaut.selected_location == creature.creature_location:
                 print(f'You have been captured')
+                creature.increase_score()
             else:
                 print(f'You are lucky')
+                astronaut.increase_score()
+
+            print(f'Current score: Creature - Astronaut')
+            print(f'{creature.get_score()} - {astronaut.get_score()}')
+
+            if astronaut.get_score() >= 5:
+                print(f'Astronaut WIN')
+                exit(0)
+            if creature.get_score() >= 5:
+                print(f'Creature WIN')
+                exit(0)
 
             game_phase = 4
             continue
 
         if game_phase == 4:
             score = 1
-            board.dicard_card(player.selected_location)
+            board.discard_card(astronaut.selected_location)
             game_phase = 0
             continue
 
