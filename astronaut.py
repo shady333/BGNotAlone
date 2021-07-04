@@ -7,6 +7,7 @@ class Astronaut(PlayerGeneral):
         PlayerGeneral.__init__(self)
         self.selected_location = None
         self.available_locations = {1, 2, 3, 4, 5}
+        self.will = 5
 
     def set_location(self, location_number):
         self.selected_location = location_number

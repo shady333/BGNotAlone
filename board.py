@@ -12,5 +12,5 @@ class Board:
 
     def clear_discard_pile(self):
         res = self.discard_pile
-        self.discard_pile = {}
+        self.discard_pile = set()
         return res

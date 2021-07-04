@@ -47,7 +47,10 @@ def player_actions():
                 continue
             elif res == 1:
                 astronaut.give_up(board.clear_discard_pile())
+                creature.increase_score()
                 game_phase = 1
+                print(f'Current score: Creature - Astronaut')
+                print(f'{creature.get_score()} - {astronaut.get_score()}')
                 continue
             elif res == 2:
                 game_phase = 1
@@ -60,6 +63,10 @@ def player_actions():
             print(f'Phase Ib')
             print(f'Available location(s): {astronaut.get_available_locations()}')
             res = int(input(f'Please enter location: '))
+            if res not in astronaut.get_available_locations():
+                print(f'Location {res} is not available.')
+                print(f'Please choose different location')
+                continue
             astronaut.set_location(res)
             game_phase = 2
             continue
