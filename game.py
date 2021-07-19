@@ -1,3 +1,5 @@
+import random
+
 from board import Board
 from creature import Creature
 from astronaut import Astronaut
@@ -37,16 +39,34 @@ def player_actions():
         if game_phase == 0:
             print(f'Phase Ia')
             print(f'Available location(s): {astronaut.get_available_locations()}')
-            print(f'0 - Resist')
+            if len(astronaut.get_discard_pile()) >= 1 and astronaut.get_available_will() >= 1:
+                print(f'0 - Resist')
             print(f'1 - Give Up')
             print(f'2 - Skip')
+            print(f'\n')
+            print(astronaut)
             res = int(input('Your choice: '))
             if res == 0:
-                astronaut.resist()
+                will_count = int(input(f'Enter will count, 1 or 2: '))
+                if will_count < astronaut.get_available_will() and will_count in range(1, 2) \
+                        and len(astronaut.get_discard_pile()) >= 2:
+                    if will_count == 1:
+                        add_card_from_discard_to_astronaut(astronaut, board)
+                        add_card_from_discard_to_astronaut(astronaut, board)
+                        astronaut.resist(will_count)
+                    if will_count == 2:
+                        add_card_from_discard_to_astronaut(astronaut, board)
+                        add_card_from_discard_to_astronaut(astronaut, board)
+                        add_card_from_discard_to_astronaut(astronaut, board)
+                        add_card_from_discard_to_astronaut(astronaut, board)
+                        astronaut.resist(will_count)
+                else:
+                    print(f'Can\'t perform action. Not enough resources')
+                    continue
                 game_phase = 1
                 continue
             elif res == 1:
-                astronaut.give_up(board.clear_discard_pile())
+                astronaut.give_up(astronaut.clear_discard_pile())
                 creature.increase_score()
                 game_phase = 1
                 print(f'Current score: Creature - Astronaut')
@@ -57,7 +77,7 @@ def player_actions():
                 continue
             else:
                 print(f'Unknown action')
-                break
+                continue
 
         if game_phase == 1:
             print(f'Phase Ib')
@@ -72,13 +92,14 @@ def player_actions():
             continue
 
         if game_phase == 2:
-            creature.set_targets(board.opened_locations, board.discard_pile)
+            creature.set_targets(board.get_opened_location(), astronaut.get_discard_pile())
             game_phase = 3
             continue
 
         if game_phase == 3:
             if astronaut.selected_location == creature.creature_location:
                 print(f'You have been captured')
+                astronaut.remove_will()
                 creature.increase_score()
             else:
                 print(f'You are lucky')
@@ -99,11 +120,17 @@ def player_actions():
 
         if game_phase == 4:
             score = 1
-            board.discard_card(astronaut.selected_location)
+            astronaut.add_card_to_discard_pile(astronaut.selected_location)
             game_phase = 0
             continue
 
         continue
+
+
+def add_card_from_discard_to_astronaut(astronaut):
+    card_number = random.choice(tuple(astronaut.get_discard_pile()))
+    astronaut.remove_card_from_discard_pile(card_number)
+    astronaut.add_location(card_number)
 
 
 def creature_actions():
