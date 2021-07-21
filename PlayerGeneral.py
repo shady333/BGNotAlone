@@ -1,3 +1,5 @@
+import random
+
 class PlayerGeneral:
     def __init__(self):
         self.score = 0
@@ -22,3 +24,8 @@ class PlayerGeneral:
         res = self.discard_pile
         self.discard_pile = set()
         return res
+
+    def add_card_from_discard_pile(self):
+        card_number = random.choice(tuple(self.get_discard_pile()))
+        self.remove_card_from_discard_pile(card_number)
+        self.add_location(card_number)
