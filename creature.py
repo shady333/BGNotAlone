@@ -1,8 +1,12 @@
 import random
 
-class Creature:
+from PlayerGeneral import PlayerGeneral
+
+
+class Creature(PlayerGeneral):
 
     def __init__(self):
+        PlayerGeneral.__init__(self)
         self.creature_location = -1
         self.target_location = -1
         self.artemia_location = -1
