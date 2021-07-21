@@ -2,15 +2,23 @@ from astronaut import Astronaut
 from board import Board
 from creature import Creature
 
+import configparser
+
 
 class GameManager:
     def __init__(self):
+        config = configparser.ConfigParser()
+        config.read('game_config.ini')
+
+        self.max_rounds = int(config['DEFAULT']['GameRounds'])
+        start_will_count = int(config['DEFAULT']['StartWillCount'])
+        self.current_phase = 1
+
         self.board = Board()
-        self.astro = Astronaut()
+        self.astro = Astronaut(start_will_count)
         self.creature = Creature()
         self.current_hero = None
-        self.max_rounds = 10
-        self.current_phase = 1
+
 
     def get_phase_description(self, phase_number):
         if phase_number == 1:
@@ -49,11 +57,7 @@ class GameManager:
         return player_action
 
     def action(self):
-
-        # self.show_phase_info(self.get_current_phase())
-
         self.get_phase_description(self.get_current_phase())
-
         if self.get_current_phase() == 1:
             self.operate_phase_one(self.get_player_input())
             return True
@@ -66,32 +70,30 @@ class GameManager:
         if self.get_current_phase() == 4:
             self.operate_phase_four()
             return True
-
         return True
 
     def operate_phase_one(self, res):
         if res == 'R':
             will_count = int(input(f'Enter will count, 1 or 2: '))
-            if will_count < self.astro.get_available_will() and will_count in range(1, 2) \
-                    and len(self.astro.get_discard_pile()) >= 2:
-                if will_count == 1:
+            if will_count <= self.astro.get_available_will():
+                counter = 0
+                self.astro.remove_will(will_count)
+                while len(self.astro.get_discard_pile()) > 0:
                     self.current_hero.add_card_from_discard_pile()
-                    self.current_hero.add_card_from_discard_pile()
-                    self.astro.resist(will_count)
-                if will_count == 2:
-                    self.current_hero.add_card_from_discard_pile()
-                    self.current_hero.add_card_from_discard_pile()
-                    self.current_hero.add_card_from_discard_pile()
-                    self.current_hero.add_card_from_discard_pile()
-                    self.astro.resist(will_count)
+                    counter = counter + 1
+                    if will_count == 1 and counter == 2:
+                        break
+                    if will_count == 2 and counter == 4:
+                        break
+
+                if self.astro.get_available_will() <= 0:
+                    self.astro_give_up_action()
+                return
             else:
                 print(f'Can\'t perform action. Not enough resources')
                 return
         elif res == 'G':
-            self.astro.give_up(self.astro.clear_discard_pile())
-            self.creature.increase_score()
-            print(f'Current score: Creature - Astronaut')
-            print(f'{self.creature.get_score()} - {self.astro.get_score()}')
+            self.astro_give_up_action()
             return
         elif int(res) in self.astro.get_available_locations():
             self.astro.set_location(int(res))
@@ -100,6 +102,12 @@ class GameManager:
         else:
             print(f'Incorrect action, please try again')
             return
+
+    def astro_give_up_action(self):
+        self.astro.give_up(self.astro.clear_discard_pile())
+        self.creature.increase_score()
+        print(f'\nCurrent score: Creature - Astronaut')
+        print(f'{self.creature.get_score()} - {self.astro.get_score()}')
 
     def operate_phase_two(self):
         self.creature.set_targets(self.board.get_opened_location(), self.astro.get_discard_pile())
@@ -125,11 +133,13 @@ class GameManager:
         self.current_phase = 4
 
     def operate_phase_four(self):
+        print(f'Points to WIN - {self.max_rounds}')
         print(f'Current score: Creature - Astronaut')
         print(f'{self.creature.get_score()} - {self.astro.get_score()}')
+        self.astro.end_of_phase()
         self.current_phase = 1
 
-    def init_player(self):
+    def choose_player(self):
         print(f'Please choose your side:')
         print(f'0 - Creature')
         print(f'1 - Astronaut')
